@@ -1,0 +1,2 @@
+ source qna-env/bin/activate
+
