@@ -33,7 +33,7 @@ module default {
     }
 
     scalar type Age extending int16{
-        constraint max_value(120);
+        constraint max_value(110);
         constraint min_value(0);
     }
 }
