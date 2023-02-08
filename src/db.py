@@ -23,7 +23,7 @@ async def get_client() -> AsyncGenerator[edgedb.AsyncIOClient, None]:
 
 
 async def init_db():
-    with open(Path("../dbschema/default_1.esdl")) as f:
+    with open(Path("../dbschema/default.esdl")) as f:
         schema = f.read()
     try:
         await client.execute(f"""START MIGRATION TO {{ {schema} }}""")
