@@ -14,7 +14,7 @@ module default {
         required property content -> str;
         property upvote -> int16{default := 0; }
         property downvote -> int16{default := 0; }
-        single link author -> User;
+        required link author -> User;
     }
 
     type Question extending Post {
@@ -26,6 +26,7 @@ module default {
 
     type Answer extending Post {
         multi link comments -> Comment;
+        property is_accepted -> bool{default := false};
     }
 
     type Comment extending Post {
