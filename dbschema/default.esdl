@@ -32,6 +32,7 @@ module default {
 
     type Answer extending Post {
         multi link comments -> Comment;
+        property is_accepted -> bool{default := false};
     }
 
     type Comment extending Post {
