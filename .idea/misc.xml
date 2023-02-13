@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (qna_app_1)" project-jdk-type="Python SDK" />
+=======
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8.10 WSL (Ubuntu): (/home/eman/graduation/qna_app_1/qna-env/bin/python)" project-jdk-type="Python SDK" />
+>>>>>>> 811fb09225534d605c625d57c9b30e1a5678e6b1
 </project>

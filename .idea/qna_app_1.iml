@@ -3,8 +3,13 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
+<<<<<<< HEAD
     <orderEntry type="inheritedJdk" />
+=======
+    <orderEntry type="jdk" jdkName="Python 3.8.10 WSL (Ubuntu): (/home/eman/graduation/qna_app_1/qna-env/bin/python)" jdkType="Python SDK" />
+>>>>>>> 811fb09225534d605c625d57c9b30e1a5678e6b1
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
