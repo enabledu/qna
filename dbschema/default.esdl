@@ -19,9 +19,15 @@ module default {
 
     type Question extending Post {
         required property title -> str;
-        required property tags -> array<str>;
-        multi link comments -> Comment;
-        multi link answer -> Answer;
+        property tags -> array<str>;
+        multi link comments -> Comment {
+            #  when the target of a link is deleted, the source is also deleted. This is useful for implementing cascading deletes.
+            on target delete delete source;
+        }
+        multi link answer -> Answer {
+            #  when the target of a link is deleted, the source is also deleted. This is useful for implementing cascading deletes.
+            on target delete delete source;
+        }
     }
 
     type Answer extending Post {
