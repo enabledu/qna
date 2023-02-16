@@ -1,249 +1,169 @@
 import uuid
-from http.client import HTTPException
-from typing import List, Dict, Optional
-import dataclasses
-from fastapi import APIRouter, Body
-from fastapi import Depends
+from typing import Optional
+
 from edgedb import AsyncIOClient
-from fastapi.params import Query
+from fastapi import APIRouter, Body, Depends, Query
 
-
-from db import init_db, create_client, close_client, get_client
+from db import get_client
+from utils import format_query_result, str_to_list
 
 question_router = APIRouter()
 
-# """"""""" functions """"""
 
-
-# func to convert from string to list
-def str_to_list(string: str) -> list:
-    return [tag for tag in string.split(",")]
-
-
-# func to convert from list of objects  to list dict
-def format_query_result(result_list: List) -> List[Dict]:
-    return [dataclasses.asdict(element) for element in result_list]
-
-
-# func of http exception
-def http_exception():
-    return HTTPException(status_code=404, detail=" ID Not Found ")
-
-
-# """ get the question by id or title or tags"""
 @question_router.get("/")
-async def get_by_field_question(
-    question_id: Optional[uuid.UUID] = Query(default=None),
-    title: Optional[str] = Query(default=None),
-    tags: Optional[str] = Query(default=None),
+async def get_q_by_field(field, value, client: AsyncIOClient = Depends(get_client)):
+    """Get the questions identified by id or title"""
+    cast_dict = {"title": "<str>", "id": "<uuid>"}
+    filter_expression = f"""filter .{field} = {cast_dict[field]}'{value}'"""
+    query_expression = f"""
+        select Question {{
+                 id, title, content, upvote, downvote, tags, author
+          }} {filter_expression}
+    """
+    return await client.query(query_expression)
+
+
+@question_router.get("/{id}/answers")
+async def get_answers(
+    question_id: uuid.UUID, client: AsyncIOClient = Depends(get_client)
+):
+    """Get the answers of the question identified by id"""
+    answers = await client.query(
+        f"""
+        select Question {{
+            answer
+        }} filter .id = <uuid>'{question_id}'
+    """
+    )
+    return format_query_result(answers)
+
+
+async def get_insert_query(
+    question_id: uuid.UUID,
+    author_id: uuid.UUID,
+    child_type: str,
+    content,
+):
+    """Get the query to insert a comment or answer"""
+    child_fields = {"Comment": "comments", "Answer": "answer"}
+    insert_query = f"""
+                with
+                child := (
+                    insert {child_type} {{
+                        content := '{content}',
+                        author := (select User filter .id = <uuid>'{author_id}')
+                    }}
+                ),
+                question := (
+                    update Question filter .id = <uuid>'{question_id}'
+                        set {{
+                            {child_fields[child_type]} += child
+                        }}
+                    )
+                select (child, question)
+            """
+    return insert_query
+
+
+@question_router.post("/{id}/answer/add")
+async def insert_answer(
+    question_id: uuid.UUID,
+    author_id: uuid.UUID,
+    content,
     client: AsyncIOClient = Depends(get_client),
 ):
-    """Get the questions identified by id"""
-    #""" define the id of question """
-    if question_id:
-        question = await client.query_single(
-            f"""
-             select Question {{
-                 id, title, content, upvote, downvote, tags, author
-          }} filter .id = <uuid>'{question_id}'
-         """
-        )
-        return dataclasses.asdict(question)
-    elif title:
-        question = await client.query(
-            f"""
-             select Question {{
-                 id, title, content, upvote, downvote, tags, author
-          }} filter .title = <str>'{title}'
-         """
-        )
-        return format_query_result(question)
-    else:
-        print(
-            f"""
-             select Question {{
-                 id, title, content, upvote, downvote, tags, author
-          }} filter .tags = <array<str>>'{tags.split(",")}'
-         """
-        )
-        question = await client.query(
-            f"""
-             select Question {{
-                 id, title, content, upvote, downvote, tags,author
-          }} filter .tags = <array<str>>{tags.split(",")}
-         """
-        )
-        return format_query_result(question)
+    """Insert an answer to the question"""
+    insert_query = await get_insert_query(question_id, author_id, "Answer", content)
+    return await client.query(insert_query)
 
 
-# """ 2) Get the answers to the question identified by id. """
-@question_router.get("/{id}/answers")
-async def get_answer_by_id(
+@question_router.post("/{id}/comment/add")
+async def insert_comment(
+    question_id: uuid.UUID,
+    author_id: uuid.UUID,
+    content,
+    client: AsyncIOClient = Depends(get_client),
+):
+    """Insert a comment to the question"""
+    insert_query = await get_insert_query(question_id, author_id, "Comment", content)
+    return await client.query(insert_query)
+
+
+@question_router.get("/{id}/comments")
+async def get_q_comments(
     question_id: uuid.UUID, client: AsyncIOClient = Depends(get_client)
 ):
-    # define the id of asnwers
+    """Get the comments of the question identified by id"""
     question = await client.query_single(
         f"""
-                select Question {{
-                    answer
-                }} filter .id = <uuid>'{question_id}'
-            """
+        select Question {{
+            comments
+        }} filter .id = <uuid>'{question_id}'
+    """
     )
-    return dataclasses.asdict(question)
+    return format_query_result(question)
 
 
-# """ 3) Creates an answer on the given question """
-@question_router.post("/{id}/answer/add")
-async def create_answer(
-    question_id: uuid.UUID, content, client: AsyncIOClient = Depends(get_client)
-):
-    if question_id is None:
-        http_exception()
-    else:
-        answer = await client.query_single(
-            f"""
-                select (
-                     insert Answer {{
-                         content := '{content}'
-                    }}
-                ) {{content}}
-            """
-        )
-        return {"msg": f"creat {answer.id} with content {answer.content} "}
-
-
-# """ 4) Create a comment on the given question """
-@question_router.post("/{id}/comment/add")
-async def create_comment(
-    question_id: uuid.UUID, content, client: AsyncIOClient = Depends(get_client)
-):
-    if question_id is None:
-        http_exception()
-    else:
-        comment = await client.query_single(
-            f"""
-                 select (
-                      insert Comment {{
-                          content := '{content}',
-                     }}
-                 ) {{content}}
-             """
-        )
-        return {"msg": f"creat {comment.id} with content {comment.content} "}
-
-
-# """ 5) Get the comments on the question."""
-@question_router.get("/{id}/comments")
-async def get_comment_by_id(
-    question_id: uuid.UUID, client: AsyncIOClient = Depends(get_client)
-):
-    if not question_id:
-        http_exception()
-    else:
-        question = await client.query_single(
-            f"""
-                 select Question {{
-                     comments
-                }} filter .id = <uuid>'{question_id}'
-             """
-        )
-        return format_query_result(question)
-
-
-# """ 6) Deletes the given questions """
 @question_router.delete("/{id}/delete")
 async def delete_by_id_question(
     question_id: uuid.UUID, client: AsyncIOClient = Depends(get_client)
 ):
-    if not question_id:
-        http_exception()
-    else:
-        await client.query_single(
-            f"""
-             delete Question  
-             filter .id = <uuid>'{question_id}'
-         """
-        )
-        return {"msg": f" Delete Question Successfuly "}
+    """Delete the question identified by id"""
+    deleted_question = await client.query_single(
+        f"""delete Question filter .id = <uuid>'{question_id}'"""
+    )
+    return {"msg": f" Delete Question {deleted_question.id} Successfully "}
 
 
-# """ 7) update a downvote on the given question
-@question_router.put("/{id}/downvote")
-async def update_downvote(
-    question_id: uuid.UUID,
-    client: AsyncIOClient = Depends(get_client),
-):
-    if not question_id:
-        http_exception()
-    else:
-        await client.query_single(
-            f"""
-            update Question  
-            filter .id = <uuid>'{question_id}'
-            set {{ downvote := .downvote+1}}
-         """
-        )
-        return {"msg": f" update on question downvote Successfuly "}
+async def get_vote_query(questio_id: uuid.UUID, vote_type: str, value: int):
+    operator = "+" if value > 0 else "-"
+    query_expression = f"""
+        update Question  
+        filter .id = <uuid>'{questio_id}'
+        set {{ {vote_type} := .{vote_type}{operator}{value}}}
+     """
+    return query_expression
 
 
-# """ 8) undo a downvote on the given question
-@question_router.put("/{id}/downvote/undo")
-async def undo_downvote_question(
-    question_id: uuid.UUID,
-    client: AsyncIOClient = Depends(get_client),
-):
-    if not question_id:
-        http_exception()
-    else:
-        await client.query_single(
-            f"""
-            update Question  
-            filter .id = <uuid>'{question_id}'
-            set {{ downvote := .downvote-1}}
-         """
-        )
-        return {"msg": f" undo downvote on question Successfuly "}
-
-
-# """ 9) update a upvote on the given question
 @question_router.put("/{id}/upvote")
-async def update_upvote(
+async def upvote(
     question_id: uuid.UUID,
     client: AsyncIOClient = Depends(get_client),
 ):
-    if not question_id:
-        http_exception()
-    else:
-        await client.query_single(
-            f"""
-            update Question  
-            filter .id = <uuid>'{question_id}'
-            set {{ upvote := .upvote+1}}
-         """
-        )
-        return {"msg": f" update on question upvote Successfuly "}
+    """Upvote on the question identified by id"""
+    upvote_query = await get_vote_query(question_id, "upvote", 1)
+    return await client.query_single(upvote_query)
 
 
-# """ 10) undo a upvote on the given question
+@question_router.put("/{id}/downvote")
+async def downvote(
+    question_id: uuid.UUID,
+    client: AsyncIOClient = Depends(get_client),
+):
+    """Downvote on the question identified by id"""
+    downvote_query = await get_vote_query(question_id, "downvote", 1)
+    return await client.query_single(downvote_query)
+
+
+@question_router.put("/{id}/downvote/undo")
+async def undo_downvote(
+    question_id: uuid.UUID,
+    client: AsyncIOClient = Depends(get_client),
+):
+    """Undo downvote on the question identified by id"""
+    undo_downvote_query = await get_vote_query(question_id, "downvote", -1)
+    return await client.query_single(undo_downvote_query)
+
+
 @question_router.put("/{id}/upvote/undo")
-async def undo_upvote_question(
+async def undo_upvote(
     question_id: uuid.UUID,
     client: AsyncIOClient = Depends(get_client),
 ):
-    if not question_id:
-        http_exception()
-    else:
-        await client.query_single(
-            f"""
-            update Question  
-            filter .id = <uuid>'{question_id}'
-            set {{ upvote := .upvote-1}}
-         """
-        )
-        return {"msg": f" undo upvote on question Successfuly "}
+    undo_upvote_query = await get_vote_query(question_id, "upvote", -1)
+    return await client.query_single(undo_upvote_query)
 
 
-# """ 11) Add question
 @question_router.post("/add")
 async def create_question(
     user_id: uuid.UUID = Body(),
@@ -252,6 +172,7 @@ async def create_question(
     tags: list = Depends(str_to_list),
     client: AsyncIOClient = Depends(get_client),
 ):
+    """Create a new question"""
     question = await client.query_single(
         f"""
              select (
@@ -266,34 +187,27 @@ async def create_question(
              ) {{id, title, content, tags}}
          """
     )
-    return {
-        "msg": f"creat {question.id} with date: title {question.title}, and content {question.content}, and tags {question.tags} "
-    }
+    return {"msg": f"create {question.id}"}
 
 
-# """ 11) edit question
 @question_router.put("/{id}/edit")
 async def edit_question(
     question_id: uuid.UUID,
-    content=Body(),
-    title=Body(),
+    content: Optional[str] = Query(default=".content"),
+    title: Optional[str] = Query(default=".title"),
     client: AsyncIOClient = Depends(get_client),
 ):
-    if not question_id:
-        http_exception()
-    else:
-        await client.query_single(
-            f"""
-            update Question  
-            filter .id = <uuid>'{question_id}'
-            set {{  
-                content := '{content}' ,
-                title := '{title}' ,
-                tags := .tags ,
-                downvote := .downvote ,
+    update_question_query = f"""
+        select (
+            update Question filter .id = <uuid>'{question_id}'
+            set {{
+                content := '{content}',
+                title := '{title}',
+                tags := .tags,
+                downvote := .downvote,
                 upvote := .upvote,
                 author := .author
-                }}
-          """
-        )
-        return {"msg": f"  Edit on question apply Successfuly "}
+            }}) {{id}}
+    """
+    updated_question = await client.query_single(update_question_query)
+    return {"msg": f"  Edit on question {updated_question.id} apply Successfully "}
