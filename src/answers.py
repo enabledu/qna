@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Body, Query
 from db import get_client
 import generated_async_edgeql as queries
 
+
 answers_router = APIRouter()
 
 
@@ -76,3 +77,8 @@ async def upvote_answer(answer_id: UUID, client=Depends(get_client)):
 async def undo_upvote_answer(answer_id: UUID, client=Depends(get_client)):
     response = await queries.undo_upvote_answer(client, id=answer_id)
     return response
+
+
+
+
+
