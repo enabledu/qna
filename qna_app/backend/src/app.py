@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from backend.src.db import init_db, create_client, close_client
-from backend.src.apis.answers import answers_router
-from backend.src.apis.questions import question_router
+from qna_app.backend.src.db import init_db, create_client, close_client
+from qna_app.backend.src.apis.answers import answers_router
+from qna_app.backend.src.apis.questions import question_router
 
 app = FastAPI()
 app.include_router(answers_router,
