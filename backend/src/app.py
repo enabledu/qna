@@ -1,16 +1,17 @@
-from fastapi import FastAPI
-from backend.src.db import init_db, create_client, close_client
-from backend.src.apis.answers import answers_router
-from backend.src.apis.questions import question_router
+from fastapi import APIRouter
 
-app = FastAPI()
+from core.backend.src.database import init_db, create_client, close_client
+
+from qna_app.backend.src.apis.answers import answers_router
+from qna_app.backend.src.apis.questions import question_router
+
+app = APIRouter()
 app.include_router(answers_router,
                    prefix="/answers",
                    tags=["answers"])
 app.include_router(question_router,
                    prefix="/questions",
                    tags=["questions"])
-
 
 
 @app.on_event("startup")

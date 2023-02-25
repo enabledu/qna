@@ -2,8 +2,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Body, Query
 
-from backend.src.db import get_client
-from backend.src.apis import generated_async_edgeql as queries
+from core.backend.src.database import get_client
+
+from qna_app.backend.src.apis import generated_async_edgeql as queries
 
 answers_router = APIRouter()
 
