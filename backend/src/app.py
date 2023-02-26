@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from core.backend.src.database import init_db, create_client, close_client
+from enabled.backend.src.database import init_db, create_client, close_client
 
 from qna_app.backend.src.apis.answers import answers_router
 from qna_app.backend.src.apis.questions import question_router
