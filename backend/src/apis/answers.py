@@ -6,21 +6,26 @@ from enabled.backend.src.database import get_client
 
 from qna_app.backend.src.apis import generated_async_edgeql as queries
 
-answers_router = APIRouter()
+answers_router = APIRouter(prefix="/answers")
 
 
 # TODO: handle exceptions in the endpoints like NOT FOUND IDs and ViolationConstraintErrors
 # FIXME: AsyncIOExecutor or AsyncIOClient
 # TODO: Handle Auth Stuff
 
+
 @answers_router.get("/")
-async def get_all_answers(client=Depends(get_client)) -> list[queries.GetAllAnswersResult]:
+async def get_all_answers(
+    client=Depends(get_client),
+) -> list[queries.GetAllAnswersResult]:
     response = await queries.get_all_answers(client)
     return response
 
 
 @answers_router.get("/answers_subset")
-async def get_answers_by_answer_ids(answer_ids: list[UUID] = Query(), client=Depends(get_client)):
+async def get_answers_by_answer_ids(
+    answer_ids: list[UUID] = Query(), client=Depends(get_client)
+):
     response = await queries.get_answers_by_answer_ids(client, ids=answer_ids)
     return response
 
@@ -62,7 +67,9 @@ async def undo_downvote_answer(answer_id: UUID, client=Depends(get_client)):
 
 
 @answers_router.post("/{answer_id}/edit")
-async def edit_answer(answer_id: UUID, content: str = Body(), client=Depends(get_client)):
+async def edit_answer(
+    answer_id: UUID, content: str = Body(), client=Depends(get_client)
+):
     response = await queries.edit_answer(client, id=answer_id, content=content)
     return response
 
@@ -77,8 +84,3 @@ async def upvote_answer(answer_id: UUID, client=Depends(get_client)):
 async def undo_upvote_answer(answer_id: UUID, client=Depends(get_client)):
     response = await queries.undo_upvote_answer(client, id=answer_id)
     return response
-
-
-
-
-

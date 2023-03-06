@@ -1,17 +1,17 @@
 from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
 
 from enabled.backend.src.database import init_db, create_client, close_client
 
 from qna_app.backend.src.apis.answers import answers_router
 from qna_app.backend.src.apis.questions import question_router
+from qna_app.backend.src.apis.comments import comments_router
 
-app = APIRouter()
-app.include_router(answers_router,
-                   prefix="/answers",
-                   tags=["answers"])
-app.include_router(question_router,
-                   prefix="/questions",
-                   tags=["questions"])
+app = APIRouter(tags=["qna"], prefix="/qna_app")
+
+app.include_router(answers_router)
+app.include_router(question_router)
+app.include_router(comments_router)
 
 
 @app.on_event("startup")
@@ -25,3 +25,9 @@ async def on_startup():
 async def on_shutdown():
     print("Shutdown...")
     await close_client()
+
+
+@app.get("/static/default-icon.svg")
+async def router_root():
+    content = "<img src='/static/default-icon.svg'>"
+    return HTMLResponse(content=content)
