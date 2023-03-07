@@ -1,4 +1,5 @@
 from uuid import UUID
+from typing import List
 
 from fastapi import APIRouter, Depends, Body, Query
 
@@ -16,7 +17,7 @@ comments_router = APIRouter(prefix="/comments")
 @comments_router.get("/")
 async def get_all_comments(
     client=Depends(get_client),
-) -> list:
+) -> List:
     response = await queries.get_all_comments(client)
     return response
 

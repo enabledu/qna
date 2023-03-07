@@ -1,4 +1,5 @@
 from uuid import UUID
+from typing import List
 
 from fastapi import APIRouter, Depends, Body, Query
 
@@ -17,7 +18,7 @@ answers_router = APIRouter(prefix="/answers")
 @answers_router.get("/")
 async def get_all_answers(
     client=Depends(get_client),
-) -> list[queries.GetAllAnswersResult]:
+) -> List[queries.GetAllAnswersResult]:
     response = await queries.get_all_answers(client)
     return response
 
