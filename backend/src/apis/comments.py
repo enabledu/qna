@@ -24,7 +24,7 @@ async def get_all_comments(
 
 @comments_router.get("/answers_subset")
 async def get_comments_by_comment_ids(
-    comment_ids: list[UUID] = Query(), client=Depends(get_client)
+    comment_ids = Query(), client=Depends(get_client)
 ):
     response = await queries.get_comments_by_comment_ids(client, ids=comment_ids)
     return response
