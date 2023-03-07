@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 
 from enabled.backend.src.database import init_db, create_client, close_client
 
@@ -31,3 +31,8 @@ async def on_shutdown():
 async def router_root():
     content = "<img src='/static/default-icon.svg'>"
     return HTMLResponse(content=content)
+
+
+@app.get("/")
+async def read_root():
+    return FileResponse("enabled/frontend/build/index.html")
