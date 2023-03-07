@@ -35,4 +35,4 @@ async def router_root():
 
 @app.get("/")
 async def read_root():
-    return FileResponse("enabled/frontend/build/index.html")
+    return FileResponse("qna_app/frontend/build/index.html")
