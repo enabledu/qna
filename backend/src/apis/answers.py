@@ -18,14 +18,14 @@ answers_router = APIRouter(prefix="/answers")
 @answers_router.get("/")
 async def get_all_answers(
     client=Depends(get_client),
-) -> List[queries.GetAllAnswersResult]:
+):
     response = await queries.get_all_answers(client)
     return response
 
 
 @answers_router.get("/answers_subset")
 async def get_answers_by_answer_ids(
-    answer_ids: list[UUID] = Query(), client=Depends(get_client)
+    answer_ids: List[UUID] = Query(), client=Depends(get_client)
 ):
     response = await queries.get_answers_by_answer_ids(client, ids=answer_ids)
     return response
