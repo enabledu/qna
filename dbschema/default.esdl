@@ -11,11 +11,11 @@ module default {
         property tags -> array<str>;
         multi link comments -> Comment {
             #  when the target of a link is deleted, the source is also deleted. This is useful for implementing cascading deletes.
-            on target delete delete source;
+            on target delete allow;
         }
         multi link answer -> Answer {
             #  when the target of a link is deleted, the source is also deleted. This is useful for implementing cascading deletes.
-            on target delete delete source;
+            on target delete allow;
         }
     }
 

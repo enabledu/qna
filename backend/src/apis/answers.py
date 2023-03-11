@@ -10,11 +10,6 @@ from qna_app.backend.src.apis import generated_async_edgeql as queries
 answers_router = APIRouter(prefix="/answers")
 
 
-# TODO: handle exceptions in the endpoints like NOT FOUND IDs and ViolationConstraintErrors
-# FIXME: AsyncIOExecutor or AsyncIOClient
-# TODO: Handle Auth Stuff
-
-
 @answers_router.get("/")
 async def get_all_answers(
     client=Depends(get_client),
@@ -51,7 +46,7 @@ async def get_comments_on_answer(answer_id: UUID, client=Depends(get_client)):
 
 @answers_router.post("/{answer_id}/delete")
 async def delete_answer(answer_id: UUID, client=Depends(get_client)):
-    response = await delete_answer(client, id=answer_id)
+    response = await queries.delete_answer(client, id=answer_id)
     return response
 
 

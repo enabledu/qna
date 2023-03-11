@@ -115,12 +115,12 @@ async def delete_by_id_question(
     return {"msg": f" Delete Question {deleted_question.id} Successfully "}
 
 
-async def get_vote_query(questio_id: uuid.UUID, vote_type: str, value: int):
-    operator = "+" if value > 0 else "-"
+async def get_vote_query(question_id: uuid.UUID, vote_type: str, value: int):
+    operation = "+1" if value == 1 else "-1"
     query_expression = f"""
         update Question  
-        filter .id = <uuid>'{questio_id}'
-        set {{ {vote_type} := .{vote_type}{operator}{value}}}
+        filter .id = <uuid>'{question_id}'
+        set {{ {vote_type} := .{vote_type}{operation}}}
      """
     return query_expression
 
@@ -166,9 +166,9 @@ async def undo_upvote(
 
 @question_router.post("/add")
 async def create_question(
-    user_id: uuid.UUID = Body(),
-    title: str = Body(),
-    content: str = Body(),
+    user_id: uuid.UUID,
+    title: str,
+    content: str,
     tags: list = Depends(str_to_list),
     client: AsyncIOClient = Depends(get_client),
 ):
