@@ -1,15 +1,4 @@
 module default {
-    type User {
-        required property first_name -> str;
-        required property last_name -> str;
-        required property username -> str {
-            constraint exclusive;
-        }
-        required property age -> Age;
-        multi link posts -> Post;
-
-    }
-
     abstract type Post {
         required property content -> str;
         property upvote -> int16{default := 0; }
@@ -37,10 +26,5 @@ module default {
 
     type Comment extending Post {
 
-    }
-
-    scalar type Age extending int16{
-        constraint max_value(110);
-        constraint min_value(0);
     }
 }

@@ -14,19 +14,6 @@ app.include_router(question_router)
 app.include_router(comments_router)
 
 
-@app.on_event("startup")
-async def on_startup():
-    print("Startup...")
-    await create_client()
-    await init_db()
-
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    print("Shutdown...")
-    await close_client()
-
-
 @app.get("/static/default-icon.svg")
 async def router_root():
     content = "<img src='/static/default-icon.svg'>"
