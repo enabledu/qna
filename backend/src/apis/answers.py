@@ -1,7 +1,6 @@
 from uuid import UUID
-from typing import List
 
-from fastapi import APIRouter, Depends, Body, Query
+from fastapi import APIRouter, Depends, Body
 
 from enabled.backend.src.database import get_client
 
@@ -18,12 +17,12 @@ async def get_all_answers(
     return response
 
 
-@answers_router.get("/answers_subset")
-async def get_answers_by_answer_ids(
-    answer_ids: List[UUID] = Query(), client=Depends(get_client)
-):
-    response = await queries.get_answers_by_answer_ids(client, ids=answer_ids)
-    return response
+# @answers_router.get("/answers_subset")
+# async def get_answers_by_answer_ids(
+#     answer_ids: List[UUID] = Query(), client=Depends(get_client)
+# ):
+#     response = await queries.get_answers_by_answer_ids(client, ids=answer_ids)
+#     return response
 
 
 @answers_router.post("/{answer_id}/accept")

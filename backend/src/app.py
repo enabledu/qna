@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, FileResponse
 
-from enabled.backend.src.database import init_db, create_client, close_client
 
 from qna_app.backend.src.apis.answers import answers_router
 from qna_app.backend.src.apis.questions import question_router

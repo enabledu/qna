@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 
 from edgedb import AsyncIOClient
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Depends, Query
 
 from enabled.backend.src.database import get_client
 from qna_app.backend.src.utils import format_query_result, str_to_list

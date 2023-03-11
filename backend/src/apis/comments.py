@@ -1,7 +1,6 @@
 from uuid import UUID
-from typing import List
 
-from fastapi import APIRouter, Depends, Body, Query
+from fastapi import APIRouter, Depends, Body
 
 from enabled.backend.src.database import get_client
 from qna_app.backend.src.apis import comments_generated_async_edgeql as queries
@@ -22,12 +21,12 @@ async def get_all_comments(
     return response
 
 
-@comments_router.get("/answers_subset")
-async def get_comments_by_comment_ids(
-    comment_ids = Query(), client=Depends(get_client)
-):
-    response = await queries.get_comments_by_comment_ids(client, ids=comment_ids)
-    return response
+# @comments_router.get("/answers_commnets")
+# async def get_comments_by_ids(
+#     comment_ids=Query(), client=Depends(get_client)
+# ):
+#     response = await queries.get_comments_by_comment_ids(client, ids=comment_ids)
+#     return response
 
 
 @comments_router.post("/{comment_id}/delete")
