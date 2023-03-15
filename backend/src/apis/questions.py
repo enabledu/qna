@@ -10,6 +10,23 @@ from qna_app.backend.src.utils import format_query_result, str_to_list
 question_router = APIRouter(prefix="/question")
 
 
+@question_router.get("/all")
+async def get_all_questions(client: AsyncIOClient = Depends(get_client)):
+    """Get all the questions"""
+    return await client.query(
+        """
+        select Question {
+            id, title, content, upvote, downvote, tags, author,
+            answer: {
+                id, content, upvote, downvote, author, is_accepted,
+                comments: {
+                    id, content, upvote, downvote, author
+                }
+            }
+        }
+    """
+    )
+
 @question_router.get("/")
 async def get_q_by_field(field, value, client: AsyncIOClient = Depends(get_client)):
     """Get the questions identified by id or title"""
