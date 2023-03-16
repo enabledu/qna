@@ -196,3 +196,6 @@ $RECYCLE.BIN/
 .vscode/
 .idea/
 node_modules/
+
+build/
+out/
