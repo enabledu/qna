@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 
 
 from qna_app.backend.src.apis.answers import answers_router
@@ -21,4 +21,4 @@ async def router_root():
 
 @app.get("/")
 async def read_root():
-    return FileResponse("qna_app/frontend/build/index.html")
+    return RedirectResponse(url="http://127.0.0.1:8000/qna_app/frontend/out/index.html")
