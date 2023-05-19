@@ -6,7 +6,7 @@ from enabled.backend.src.database import get_client
 
 from qna_app.backend.src.apis import generated_async_edgeql as queries
 
-answers_router = APIRouter(prefix="/answers")
+answers_router = APIRouter(tags=["qna: answers"], prefix="/answers")
 
 
 @answers_router.get("/")

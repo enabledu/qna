@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Body
 from enabled.backend.src.database import get_client
 from qna_app.backend.src.apis import comments_generated_async_edgeql as queries
 
-comments_router = APIRouter(prefix="/comments")
+comments_router = APIRouter(tags=["qna: comments"], prefix="/comments")
 
 
 # TODO: handle exceptions in the endpoints like NOT FOUND IDs and ViolationConstraintErrors
