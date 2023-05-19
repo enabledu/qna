@@ -5,7 +5,7 @@
 #     'src/queries/edit_answer.edgeql'
 #     'src/queries/get_all_answers.edgeql'
 #     'src/queries/get_answers_by_answer_ids.edgeql'
-#     'src/queries/get_comments_on_answer.edgeql'
+#     'src/queries/get_all_answer_comments.edgeql'
 #     'src/queries/undo_accept_answer.edgeql'
 #     'src/queries/undo_downvote_answer.edgeql'
 #     'src/queries/undo_upvote_answer.edgeql'
