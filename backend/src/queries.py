@@ -1,0 +1,511 @@
+from __future__ import annotations
+import edgedb
+import uuid
+
+from qna_app.backend.src.models import PostID, Post, Question, Answer, Comment
+
+
+async def accept_answer(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    answer_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        update Answer
+        filter .id = <uuid>$answer_id
+        set{
+            is_accepted := true
+        }\
+        """,
+        answer_id=answer_id,
+    )
+
+
+async def add_answer_to_question(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    author_id: uuid.UUID,
+    content: str,
+    question_id: uuid.UUID,
+) -> PostID:
+    return await executor.query_single(
+        """\
+        with
+          author := (
+            select User
+            filter .id = <uuid>$author_id
+          ),
+          answer := (
+            insert Answer {
+              author := author,
+              content := <str>$content,
+            }
+          ),
+          updated_question := (
+            update Question
+            filter .id = <uuid>$question_id
+            set {
+              answers += answer
+            }
+          )
+        select answer\
+        """,
+        author_id=author_id,
+        content=content,
+        question_id=question_id,
+    )
+
+
+async def add_comment_to_question(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    author_id: uuid.UUID,
+    content: str,
+    question_id: uuid.UUID,
+) -> PostID:
+    return await executor.query_single(
+        """\
+        with
+          author := (
+            select User
+            filter .id = <uuid>$author_id
+          ),
+          comment := (
+            insert Comment {
+              author := author,
+              content := <str>$content,
+            }
+          ),
+          updated_question := (
+            update Question
+            filter .id = <uuid>$question_id
+            set {
+              comments += comment
+            }
+          )
+        select comment\
+        """,
+        author_id=author_id,
+        content=content,
+        question_id=question_id,
+    )
+
+
+async def add_question(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    owner_id: uuid.UUID,
+    title: str,
+    content: str,
+    tags: list[str] | None,
+) -> PostID:
+    return await executor.query_single(
+        """\
+        insert Question {
+          author := (
+            select User
+            filter .id = <uuid>$owner_id
+          ),
+          title := <str>$title,
+          content := <str>$content,
+          tags := <optional array<str>>$tags
+        }\
+        """,
+        owner_id=owner_id,
+        title=title,
+        content=content,
+        tags=tags,
+    )
+
+
+async def delete_answer(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    answer_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        delete Answer
+        filter .id = <uuid>$answer_id\
+        """,
+        answer_id=answer_id,
+    )
+
+
+async def delete_comment(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    comment_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        delete Comment
+        filter .id = <uuid>$comment_id\
+        """,
+        comment_id=comment_id,
+    )
+
+
+async def delete_question(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    question_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        delete Question
+        filter .id = <uuid>$question_id\
+        """,
+        question_id=question_id,
+    )
+
+
+async def downvote_post(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    downvoter_id: uuid.UUID,
+    post_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        with
+          downvoter := (
+            select User
+            filter .id = <uuid>$downvoter_id
+          )
+        update Post
+        filter .id = <uuid>$post_id
+        set {
+          downvotes := .downvotes+1,
+          downvoters += downvoter
+        }\
+        """,
+        downvoter_id=downvoter_id,
+        post_id=post_id,
+    )
+
+
+async def edit_answer(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    answer_id: uuid.UUID,
+    content: str,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        update Answer
+        filter .id = <uuid>$answer_id
+        set {
+            content := <str>$content
+        }\
+        """,
+        answer_id=answer_id,
+        content=content,
+    )
+
+
+async def edit_comment(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    comment_id: uuid.UUID,
+    content: str,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        update Comment
+        filter .id = <uuid>$comment_id
+        set {
+            content := <str>$content
+        }\
+        """,
+        comment_id=comment_id,
+        content=content,
+    )
+
+
+async def edit_question(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    question_id: uuid.UUID,
+    title: str,
+    content: str,
+    tags: list[str] | None,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        update Question
+        filter .id = <uuid>$question_id
+        set {
+          title := <str>$title,
+          content := <str>$content,
+          tags := <optional array <str>>$tags
+        }\
+        """,
+        question_id=question_id,
+        title=title,
+        content=content,
+        tags=tags,
+    )
+
+
+async def get_all_answer_comments(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    answer_id: uuid.UUID,
+) -> list[Comment]:
+    return await executor.query(
+        """\
+        with answer := (
+          select Answer
+          filter .id = <uuid>$answer_id
+        )
+        select answer.comments {
+          id,
+          author: {
+            id,
+            username
+          },
+          content,
+          upvotes,
+          downvotes
+        }\
+        """,
+        answer_id=answer_id,
+    )
+
+
+async def get_all_question_answers(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    question_id: uuid.UUID,
+) -> list[Answer]:
+    return await executor.query(
+        """\
+        with question := (
+          select Question
+          filter .id = <uuid>$question_id
+        )
+        select question.answers {
+          id,
+          author: {
+            id,
+            username
+          },
+          content,
+          upvotes,
+          downvotes,
+          is_accepted
+        }\
+        """,
+        question_id=question_id,
+    )
+
+
+async def get_all_question_comments(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    question_id: uuid.UUID,
+) -> list[Comment]:
+    return await executor.query(
+        """\
+        with question := (
+          select Question
+          filter .id = <uuid>$question_id
+        )
+        select question.comments {
+          id,
+          author: {
+            id,
+            username
+          },
+          content,
+          upvotes,
+          downvotes
+        }\
+        """,
+        question_id=question_id,
+    )
+
+
+async def get_all_questions(
+    executor: edgedb.AsyncIOExecutor,
+) -> list[Question]:
+    return await executor.query(
+        """\
+        select Question {
+          id,
+          author: {
+            id,
+            username
+          },
+          title,
+          content,
+          upvotes,
+          downvotes,
+        }\
+        """,
+    )
+
+
+async def get_answer(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    answer_id: uuid.UUID,
+) -> Answer | None:
+    return await executor.query_single(
+        """\
+        select Answer {
+          id,
+          author: {
+            id,
+            username
+          },
+          content,
+          upvotes,
+          downvotes,
+          is_accepted
+        }
+        filter .id = <uuid>$answer_id\
+        """,
+        answer_id=answer_id,
+    )
+
+
+async def get_comment(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    comment_id: uuid.UUID,
+) -> Comment | None:
+    return await executor.query_single(
+        """\
+        select Comment {
+          id,
+          author: {
+            id,
+            username
+          },
+          content,
+          upvotes,
+          downvotes,
+        }
+        filter .id = <uuid>$comment_id\
+        """,
+        comment_id=comment_id,
+    )
+
+
+async def get_question(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    question_id: uuid.UUID,
+) -> Question | None:
+    return await executor.query_single(
+        """\
+        select Question {
+          id,
+          author: {
+            id,
+            username
+          },
+          title,
+          content,
+          upvotes,
+          downvotes,
+        }
+        filter .id = <uuid>$question_id\
+        """,
+        question_id=question_id,
+    )
+
+
+async def undo_accept_answer(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    answer_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        update Answer
+        filter .id = <uuid>$answer_id
+        set {
+            is_accepted := false
+        }\
+        """,
+        answer_id=answer_id,
+    )
+
+
+async def undo_downvote_post(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    downvoter_id: uuid.UUID,
+    post_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        with
+          downvoter := (
+            select User
+            filter .id = <uuid>$downvoter_id
+          )
+        update Post
+        filter .id = <uuid>$post_id
+        set {
+          downvotes := .downvotes-1,
+          downvoters -= downvoter
+        }\
+        """,
+        downvoter_id=downvoter_id,
+        post_id=post_id,
+    )
+
+
+async def undo_upvote_post(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    upvoter_id: uuid.UUID,
+    post_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        with
+          upvoter := (
+            select User
+            filter .id = <uuid>$upvoter_id
+          )
+        update Post
+        filter .id = <uuid>$post_id
+        set {
+          upvotes := .upvotes-1,
+          upvoters -= upvoter
+        }\
+        """,
+        upvoter_id=upvoter_id,
+        post_id=post_id,
+    )
+
+
+async def upvote_post(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    upvoter_id: uuid.UUID,
+    post_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        with
+          upvoter := (
+            select User
+            filter .id = <uuid>$upvoter_id
+          )
+        update Post
+        filter .id = <uuid>$post_id
+        set {
+          upvotes := .upvotes+1,
+          upvoters += upvoter
+        }\
+        """,
+        upvoter_id=upvoter_id,
+        post_id=post_id,
+    )
