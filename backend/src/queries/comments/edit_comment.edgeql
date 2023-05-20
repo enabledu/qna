@@ -1,5 +1,5 @@
 update Comment
-filter .id = <uuid>$id
-set{
+filter .id = <uuid>$comment_id
+set {
     content := <str>$content
 }

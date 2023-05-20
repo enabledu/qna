@@ -1,5 +1,5 @@
 update Answer
-filter .id = <uuid>$id
+filter .id = <uuid>$answer_id
 set{
     is_accepted := true
 }

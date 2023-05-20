@@ -1,2 +1,2 @@
 delete Comment
-filter .id = <uuid>$id
+filter .id = <uuid>$comment_id

@@ -1,2 +1,2 @@
 delete Answer
-filter .id = <uuid>$id
+filter .id = <uuid>$answer_id

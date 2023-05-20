@@ -1,7 +1,14 @@
-with comment_ids := (select Answer filter .id = <uuid>$id)
-select Comment{
+with answer := (
+  select Answer
+  filter .id = <uuid>$answer_id
+)
+select answer.comments {
+  id,
+  author: {
+    id,
+    username
+  },
   content,
-  upvote,
-  downvote,
-  author
-} filter .id in comment_ids.comments.id
+  upvotes,
+  downvotes
+}
