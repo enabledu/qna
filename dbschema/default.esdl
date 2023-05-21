@@ -21,10 +21,12 @@ module default {
         property tags -> array<str>;
         property views -> int16 {default := 0};
         multi link comments -> Comment {
+            constraint exclusive;
             on target delete allow;
             on source delete delete target;
         }
         multi link answers -> Answer {
+            constraint exclusive;
             on target delete allow;
             on source delete delete target;
         }
@@ -32,6 +34,7 @@ module default {
 
     type Answer extending Post {
         multi link comments -> Comment {
+            constraint exclusive;
             on target delete allow;
             on source delete delete target;
         }
