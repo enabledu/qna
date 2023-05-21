@@ -236,11 +236,13 @@ async def edit_answer(
 ) -> PostID | None:
     return await executor.query_single(
         """\
+        with date_modified := datetime_of_statement()
         update Answer
         filter .id = <uuid>$answer_id
         set {
-            content := <str>$content
-        }\
+          content := <str>$content,
+          date_modified := date_modified
+        }
         """,
         answer_id=answer_id,
         content=content,
@@ -255,11 +257,13 @@ async def edit_comment(
 ) -> PostID | None:
     return await executor.query_single(
         """\
+        with date_modified := datetime_of_statement()
         update Comment
         filter .id = <uuid>$comment_id
         set {
-            content := <str>$content
-        }\
+            content := <str>$content,
+            date_modified := date_modified
+        }
         """,
         comment_id=comment_id,
         content=content,
@@ -276,13 +280,15 @@ async def edit_question(
 ) -> PostID | None:
     return await executor.query_single(
         """\
+        with date_modified := datetime_of_statement()
         update Question
         filter .id = <uuid>$question_id
         set {
           title := <str>$title,
           content := <str>$content,
-          tags := <optional array <str>>$tags
-        }\
+          tags := <optional array <str>>$tags,
+          date_modified := date_modified
+        }
         """,
         question_id=question_id,
         title=title,
@@ -310,7 +316,9 @@ async def get_all_answer_comments(
           },
           content,
           upvotes,
-          downvotes
+          downvotes,
+          date_created,
+          date_modified
         }\
         """,
         answer_id=answer_id,
@@ -337,7 +345,9 @@ async def get_all_question_answers(
           content,
           upvotes,
           downvotes,
-          is_accepted
+          is_accepted,
+          date_created,
+          date_modified
         }\
         """,
         question_id=question_id,
@@ -363,7 +373,9 @@ async def get_all_question_comments(
           },
           content,
           upvotes,
-          downvotes
+          downvotes,
+          date_created,
+          date_modified
         }\
         """,
         question_id=question_id,
@@ -387,6 +399,8 @@ async def get_all_questions(
           views,
           upvotes,
           downvotes,
+          date_created,
+          date_modified
         }\
         """,
     )
@@ -409,6 +423,8 @@ async def get_answer_detailed(
           upvotes,
           downvotes,
           is_accepted,
+          date_created,
+          date_modified,
         
           comments: {
             id,
@@ -419,6 +435,8 @@ async def get_answer_detailed(
             content,
             upvotes,
             downvotes,
+            date_created,
+            date_modified
           }
         }
         filter .id = <uuid>$answer_id
@@ -443,7 +461,9 @@ async def get_answer(
           content,
           upvotes,
           downvotes,
-          is_accepted
+          is_accepted,
+          date_created,
+          date_modified
         }
         filter .id = <uuid>$answer_id\
         """,
@@ -467,6 +487,8 @@ async def get_comment(
           content,
           upvotes,
           downvotes,
+          date_created,
+          date_modified
         }
         filter .id = <uuid>$comment_id\
         """,
@@ -493,6 +515,8 @@ async def get_question(
           views,
           upvotes,
           downvotes,
+          date_created,
+          date_modified
         }
         filter .id = <uuid>$question_id\
         """,
@@ -519,6 +543,8 @@ async def get_question_detailed(
           views,
           upvotes,
           downvotes,
+          date_created,
+          date_modified,
         
           answers: {
             id,
@@ -530,6 +556,8 @@ async def get_question_detailed(
             upvotes,
             downvotes,
             is_accepted,
+            date_created,
+            date_modified,
             comments: {
               id,
               author: {
@@ -539,6 +567,8 @@ async def get_question_detailed(
               content,
               upvotes,
               downvotes,
+              date_created,
+              date_modified
             }
           },
         
@@ -551,6 +581,8 @@ async def get_question_detailed(
             content,
             upvotes,
             downvotes,
+            date_created,
+            date_modified
           }
         }
         filter .id = <uuid>$question_id

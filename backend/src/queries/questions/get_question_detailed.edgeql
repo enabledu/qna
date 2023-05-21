@@ -10,6 +10,8 @@ select Question {
   views,
   upvotes,
   downvotes,
+  date_created,
+  date_modified,
 
   answers: {
     id,
@@ -21,6 +23,8 @@ select Question {
     upvotes,
     downvotes,
     is_accepted,
+    date_created,
+    date_modified,
     comments: {
       id,
       author: {
@@ -30,6 +34,8 @@ select Question {
       content,
       upvotes,
       downvotes,
+      date_created,
+      date_modified
     }
   },
 
@@ -42,6 +48,8 @@ select Question {
     content,
     upvotes,
     downvotes,
+    date_created,
+    date_modified
   }
 }
 filter .id = <uuid>$question_id

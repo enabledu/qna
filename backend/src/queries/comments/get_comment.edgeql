@@ -7,5 +7,7 @@ select Comment {
   content,
   upvotes,
   downvotes,
+  date_created,
+  date_modified
 }
 filter .id = <uuid>$comment_id

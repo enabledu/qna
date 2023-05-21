@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -28,6 +29,8 @@ class CommentRead(BaseModel):
     upvotes: int = 0
     downvotes: int = 0
     author: Author
+    date_created: datetime
+    date_modified: datetime | None
 
 
 class CommentCreate(BaseModel):
@@ -45,6 +48,8 @@ class AnswerRead(BaseModel):
     downvotes: int = 0
     author: Author
     is_accepted: bool = False
+    date_created: datetime
+    date_modified: datetime | None
 
 
 class AnswerReadDetailed(BaseModel):
@@ -54,6 +59,8 @@ class AnswerReadDetailed(BaseModel):
     downvotes: int = 0
     author: Author
     is_accepted: bool = False
+    date_created: datetime
+    date_modified: datetime | None
 
     comments: list[CommentRead] = None
 
@@ -75,6 +82,8 @@ class QuestionRead(BaseModel):
     title: str
     tags: list[str] | None
     views: int
+    date_created: datetime
+    date_modified: datetime | None
 
 
 class QuestionReadDetailed(BaseModel):
@@ -86,6 +95,8 @@ class QuestionReadDetailed(BaseModel):
     title: str
     tags: list[str] | None
     views: int
+    date_created: datetime
+    date_modified: datetime | None
 
     answers: list[AnswerReadDetailed] = None
     comments: list[CommentRead] = None

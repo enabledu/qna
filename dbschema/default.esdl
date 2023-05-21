@@ -4,6 +4,13 @@ module default {
         property upvotes := (select count(.upvoters));
         property downvotes := (select count(.downvoters));
         required link author -> User;
+
+        property date_created -> datetime {
+            readonly := True;
+            default := (datetime_of_statement());
+        }
+
+        property date_modified -> datetime;
         
         multi link upvoters -> User;
         multi link downvoters -> User;

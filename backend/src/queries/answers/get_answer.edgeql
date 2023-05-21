@@ -7,6 +7,8 @@ select Answer {
   content,
   upvotes,
   downvotes,
-  is_accepted
+  is_accepted,
+  date_created,
+  date_modified
 }
 filter .id = <uuid>$answer_id

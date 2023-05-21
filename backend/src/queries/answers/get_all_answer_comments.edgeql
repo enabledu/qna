@@ -10,5 +10,7 @@ select answer.comments {
   },
   content,
   upvotes,
-  downvotes
+  downvotes,
+  date_created,
+  date_modified
 }
