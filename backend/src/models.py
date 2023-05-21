@@ -74,6 +74,7 @@ class QuestionRead(BaseModel):
     author: Author
     title: str
     tags: list[str] | None
+    views: int
 
 
 class QuestionReadDetailed(BaseModel):
@@ -84,6 +85,7 @@ class QuestionReadDetailed(BaseModel):
     author: Author
     title: str
     tags: list[str] | None
+    views: int
 
     answers: list[AnswerReadDetailed] = None
     comments: list[CommentRead] = None

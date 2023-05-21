@@ -7,6 +7,7 @@ select Question {
   title,
   content,
   tags,
+  views,
   upvotes,
   downvotes,
 
