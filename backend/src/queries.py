@@ -556,6 +556,23 @@ async def get_question_detailed(
     )
 
 
+async def increment_question_views(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    question_id: uuid.UUID,
+) -> PostID | None:
+    return await executor.query_single(
+        """\
+        update Question
+        filter .id = <uuid>$question_id
+        set {
+          views := .views+1
+        }
+        """,
+        question_id=question_id,
+    )
+
+
 async def undo_accept_answer(
     executor: edgedb.AsyncIOExecutor,
     *,

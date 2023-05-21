@@ -30,6 +30,7 @@ async def get_all_questions(client: AsyncIOClient = Depends(get_client)) -> list
                       responses={404: {"model": ErrorModel}})
 async def get_single_detailed_question(question_id: UUID,
                                        client: AsyncIOClient = Depends(get_client)) -> QuestionReadDetailed:
+    await queries.increment_question_views(client, question_id=question_id)
     return await queries.get_question_detailed(client, question_id=question_id)
 
 

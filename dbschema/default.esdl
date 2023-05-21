@@ -4,6 +4,7 @@ module default {
         property upvotes := (select count(.upvoters));
         property downvotes := (select count(.downvoters));
         required link author -> User;
+        property views -> int16 {default := 0};
         
         multi link upvoters -> User;
         multi link downvoters -> User;
