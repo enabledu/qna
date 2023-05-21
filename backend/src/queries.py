@@ -92,7 +92,6 @@ async def add_comment_to_answer(
     )
 
 
-
 async def add_comment_to_question(
     executor: edgedb.AsyncIOExecutor,
     *,
@@ -373,7 +372,7 @@ async def get_all_question_comments(
 
 async def get_all_questions(
     executor: edgedb.AsyncIOExecutor,
-) -> list[Question]:
+) -> list[QuestionRead]:
     return await executor.query(
         """\
         select Question {
@@ -388,6 +387,41 @@ async def get_all_questions(
           downvotes,
         }\
         """,
+    )
+
+
+async def get_answer_detailed(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    answer_id: uuid.UUID,
+) -> AnswerRead | None:
+    return await executor.query_single(
+        """\
+        select Answer {
+          id,
+          author: {
+            id,
+            username
+          },
+          content,
+          upvotes,
+          downvotes,
+          is_accepted,
+        
+          comments: {
+            id,
+            author: {
+              id,
+              username
+            },
+            content,
+            upvotes,
+            downvotes,
+          }
+        }
+        filter .id = <uuid>$answer_id
+        """,
+        answer_id=answer_id,
     )
 
 
@@ -457,6 +491,63 @@ async def get_question(
           downvotes,
         }
         filter .id = <uuid>$question_id\
+        """,
+        question_id=question_id,
+    )
+
+
+async def get_question_detailed(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    question_id: uuid.UUID,
+) -> QuestionRead | None:
+    return await executor.query_single(
+        """\
+        select Question {
+          id,
+          author: {
+            id,
+            username
+          },
+          title,
+          content,
+          upvotes,
+          downvotes,
+        
+          answers: {
+            id,
+            author: {
+              id,
+              username
+            },
+            content,
+            upvotes,
+            downvotes,
+            is_accepted,
+            comments: {
+              id,
+              author: {
+                id,
+                username
+              },
+              content,
+              upvotes,
+              downvotes,
+            }
+          },
+        
+          comments: {
+            id,
+            author: {
+              id,
+              username
+            },
+            content,
+            upvotes,
+            downvotes,
+          }
+        }
+        filter .id = <uuid>$question_id
         """,
         question_id=question_id,
     )

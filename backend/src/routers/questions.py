@@ -2,7 +2,7 @@ import dataclasses
 from uuid import UUID
 
 from edgedb import AsyncIOClient
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from qna.backend.src import queries
 
@@ -20,8 +20,12 @@ questions_router = APIRouter(tags=["qna: questions"], prefix="/question")
 
 
 @questions_router.get("/")
-async def get_all_questions(client: AsyncIOClient = Depends(get_client)) -> list[QuestionRead]:
-    return await queries.get_all_questions(client)
+async def get_questions(id: UUID | None = Query(default=None),
+                            client: AsyncIOClient = Depends(get_client)) -> QuestionRead | list[QuestionRead]:
+    if not id:
+        return await queries.get_all_questions(client)
+    else:
+        return await queries.get_question_detailed(client, question_id=id)
 
 
 @questions_router.post("/add/")

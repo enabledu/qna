@@ -22,43 +22,10 @@ class PostVote(BaseModel):
     downvotes: int  = Field(ge=0)
 
 
-class QuestionRead(BaseModel):
-    id: UUID
-    content: str
-    upvotes: int = 0
-    downvotes: int = 0
-    author: Author
-    title: str
-    tags: list[str] = None
-
-
-class QuestionUpdate(BaseModel):
-    content: str
-    title: str
-    tags: list[str] = None
-
-
 class QuestionCreate(BaseModel):
     content: str
     title: str
     tags: list[str] = None
-
-
-class AnswerRead(BaseModel):
-    id: UUID
-    content: str
-    upvotes: int = 0
-    downvotes: int = 0
-    author: Author
-    is_accepted: bool = False
-
-
-class AnswerCreate(BaseModel):
-    content: str
-
-
-class AnswerUpdate(BaseModel):
-    content: str
 
 
 class CommentRead(BaseModel):
@@ -75,3 +42,41 @@ class CommentCreate(BaseModel):
 
 class CommentUpdate(BaseModel):
     content: str
+
+
+class AnswerRead(BaseModel):
+    id: UUID
+    content: str
+    upvotes: int = 0
+    downvotes: int = 0
+    author: Author
+    is_accepted: bool = False
+
+    comments: list[CommentRead] = None
+
+
+class AnswerCreate(BaseModel):
+    content: str
+
+
+class AnswerUpdate(BaseModel):
+    content: str
+
+
+class QuestionRead(BaseModel):
+    id: UUID
+    content: str
+    upvotes: int = 0
+    downvotes: int = 0
+    author: Author
+    title: str
+    tags: list[str] = None
+
+    answers: list[AnswerRead] = None
+    comments: list[CommentRead] = None
+
+
+class QuestionUpdate(BaseModel):
+    content: str
+    title: str
+    tags: list[str] = None
