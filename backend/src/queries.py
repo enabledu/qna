@@ -209,13 +209,20 @@ async def downvote_post(
           downvoter := (
             select User
             filter .id = <uuid>$downvoter_id
+          ),
+          post := (
+            update Post
+            filter .id = <uuid>$post_id
+            set {
+              upvoters -= downvoter,
+              downvoters += downvoter
+            }
           )
-        update Post
-        filter .id = <uuid>$post_id
-        set {
-          upvoters -= downvoter,
-          downvoters += downvoter
-        }\
+        select post {
+          id,
+          upvotes,
+          downvotes,
+        }
         """,
         downvoter_id=downvoter_id,
         post_id=post_id,
@@ -484,12 +491,19 @@ async def undo_downvote_post(
           downvoter := (
             select User
             filter .id = <uuid>$downvoter_id
+          ),
+          post := (
+            update Post
+            filter .id = <uuid>$post_id
+            set {
+              downvoters -= downvoter
+            }
           )
-        update Post
-        filter .id = <uuid>$post_id
-        set {
-          downvoters -= downvoter
-        }\
+        select post {
+          id,
+          upvotes,
+          downvotes
+        }
         """,
         downvoter_id=downvoter_id,
         post_id=post_id,
@@ -508,12 +522,19 @@ async def undo_upvote_post(
           upvoter := (
             select User
             filter .id = <uuid>$upvoter_id
+          ),
+          post := (
+            update Post
+            filter .id = <uuid>$post_id
+            set {
+              upvoters -= upvoter
+            }
           )
-        update Post
-        filter .id = <uuid>$post_id
-        set {
-          upvoters -= upvoter
-        }\
+        select post {
+          id,
+          upvotes,
+          downvotes
+        }
         """,
         upvoter_id=upvoter_id,
         post_id=post_id,
@@ -532,12 +553,19 @@ async def upvote_post(
           upvoter := (
             select User
             filter .id = <uuid>$upvoter_id
+          ),
+          post := (
+            update Post
+            filter .id = <uuid>$post_id
+            set {
+              downvoters -= upvoter,
+              upvoters += upvoter
+            }
           )
-        update Post
-        filter .id = <uuid>$post_id
-        set {
-          downvoters -= upvoter,
-          upvoters += upvoter
+        select post {
+          id,
+          upvotes,
+          downvotes
         }\
         """,
         upvoter_id=upvoter_id,

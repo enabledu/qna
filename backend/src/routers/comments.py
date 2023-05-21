@@ -7,7 +7,7 @@ from enabled.backend.src.database import get_client
 from qna.backend.src import queries
 
 from qna.backend.src.models import (CommentCreate, CommentRead, CommentUpdate,
-                                    PostID, ErrorModel)
+                                    PostID, PostVote, ErrorModel)
 
 from enabled.backend.src.users.users import current_active_user
 
@@ -53,7 +53,7 @@ async def delete_comment(comment_id: UUID,
                       responses={404: {"model": ErrorModel}})
 async def upvote_comment(comment_id: UUID,
                          user=Depends(current_active_user),
-                         client=Depends(get_client)) -> PostID:
+                         client=Depends(get_client)) -> PostVote:
     return await queries.upvote_post(client,
                                      post_id=comment_id,
                                      upvoter_id=user.id)
@@ -64,7 +64,7 @@ async def upvote_comment(comment_id: UUID,
                       responses={404: {"model": ErrorModel}})
 async def undo_upvote_comment(comment_id: UUID,
                               user=Depends(current_active_user),
-                              client=Depends(get_client)) -> PostID:
+                              client=Depends(get_client)) -> PostVote:
     return await queries.undo_upvote_post(client,
                                           post_id=comment_id,
                                           upvoter_id=user.id)
@@ -75,7 +75,7 @@ async def undo_upvote_comment(comment_id: UUID,
                       responses={404: {"model": ErrorModel}})
 async def downvote_comment(comment_id: UUID,
                            user=Depends(current_active_user),
-                           client=Depends(get_client)) -> PostID:
+                           client=Depends(get_client)) -> PostVote:
     return await queries.downvote_post(client,
                                        post_id=comment_id,
                                        downvoter_id=user.id)
@@ -86,7 +86,7 @@ async def downvote_comment(comment_id: UUID,
                       responses={404: {"model": ErrorModel}})
 async def undo_downvote_comment(comment_id: UUID,
                                 user=Depends(current_active_user),
-                                client=Depends(get_client)) -> PostID:
+                                client=Depends(get_client)) -> PostVote:
     return await queries.undo_downvote_post(client,
                                             post_id=comment_id,
                                             downvoter_id=user.id)

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ErrorModel(BaseModel):
@@ -14,6 +14,12 @@ class Author(BaseModel):
 
 class PostID(BaseModel):
     id: UUID
+
+
+class PostVote(BaseModel):
+    id: UUID
+    upvotes: int = Field(ge=0)
+    downvotes: int  = Field(ge=0)
 
 
 class QuestionRead(BaseModel):
