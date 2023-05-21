@@ -52,6 +52,15 @@ class AnswerRead(BaseModel):
     author: Author
     is_accepted: bool = False
 
+
+class AnswerReadDetailed(BaseModel):
+    id: UUID
+    content: str
+    upvotes: int = 0
+    downvotes: int = 0
+    author: Author
+    is_accepted: bool = False
+
     comments: list[CommentRead] = None
 
 
@@ -72,7 +81,17 @@ class QuestionRead(BaseModel):
     title: str
     tags: list[str] = None
 
-    answers: list[AnswerRead] = None
+
+class QuestionReadDetailed(BaseModel):
+    id: UUID
+    content: str
+    upvotes: int = 0
+    downvotes: int = 0
+    author: Author
+    title: str
+    tags: list[str] = None
+
+    answers: list[AnswerReadDetailed] = None
     comments: list[CommentRead] = None
 
 

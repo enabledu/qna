@@ -9,7 +9,8 @@ from qna.backend.src import queries
 from enabled.backend.src.database import get_client
 from enabled.backend.src.users.users import current_active_user
 
-from qna.backend.src.models import (QuestionCreate, QuestionRead, QuestionUpdate,
+from qna.backend.src.models import (QuestionCreate, QuestionRead,
+                                    QuestionUpdate, QuestionReadDetailed,
                                     CommentCreate, CommentRead,
                                     AnswerCreate, AnswerRead,
                                     PostID, PostVote, ErrorModel)
@@ -20,12 +21,16 @@ questions_router = APIRouter(tags=["qna: questions"], prefix="/question")
 
 
 @questions_router.get("/")
-async def get_questions(id: UUID | None = Query(default=None),
-                            client: AsyncIOClient = Depends(get_client)) -> QuestionRead | list[QuestionRead]:
-    if not id:
-        return await queries.get_all_questions(client)
-    else:
-        return await queries.get_question_detailed(client, question_id=id)
+async def get_all_questions(client: AsyncIOClient = Depends(get_client)) -> list[QuestionRead]:
+    return await queries.get_all_questions(client)
+
+
+@questions_router.get("/{question_id}",
+                      dependencies=[Depends(get_question)],
+                      responses={404: {"model": ErrorModel}})
+async def get_single_detailed_question(question_id: UUID,
+                                       client: AsyncIOClient = Depends(get_client)) -> QuestionReadDetailed:
+    return await queries.get_question_detailed(client, question_id=question_id)
 
 
 @questions_router.post("/add/")
