@@ -6,5 +6,6 @@ with
 update Post
 filter .id = <uuid>$post_id
 set {
+  upvoters -= downvoter,
   downvoters += downvoter
 }

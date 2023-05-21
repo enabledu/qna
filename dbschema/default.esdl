@@ -5,13 +5,8 @@ module default {
         property downvotes := (select count(.downvoters));
         required link author -> User;
         
-        multi link upvoters -> User {
-            constraint exclusive;
-        }
-        
-        multi link downvoters -> User {
-            constraint exclusive;
-        }
+        multi link upvoters -> User;
+        multi link downvoters -> User;
     }
 
     type Question extending Post {
