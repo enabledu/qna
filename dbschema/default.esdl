@@ -4,7 +4,6 @@ module default {
         property upvotes := (select count(.upvoters));
         property downvotes := (select count(.downvoters));
         required link author -> User;
-        property views -> int16 {default := 0};
         
         multi link upvoters -> User;
         multi link downvoters -> User;
@@ -13,6 +12,7 @@ module default {
     type Question extending Post {
         required property title -> str;
         property tags -> array<str>;
+        property views -> int16 {default := 0};
         multi link comments -> Comment {
             on target delete allow;
             on source delete delete target;
