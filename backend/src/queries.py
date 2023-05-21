@@ -383,6 +383,7 @@ async def get_all_questions(
           },
           title,
           content,
+          tags,
           upvotes,
           downvotes,
         }\
@@ -487,6 +488,7 @@ async def get_question(
           },
           title,
           content,
+          tags,
           upvotes,
           downvotes,
         }
@@ -511,6 +513,7 @@ async def get_question_detailed(
           },
           title,
           content,
+          tags,
           upvotes,
           downvotes,
         

@@ -22,12 +22,6 @@ class PostVote(BaseModel):
     downvotes: int  = Field(ge=0)
 
 
-class QuestionCreate(BaseModel):
-    content: str
-    title: str
-    tags: list[str] = None
-
-
 class CommentRead(BaseModel):
     id: UUID
     content: str
@@ -79,7 +73,7 @@ class QuestionRead(BaseModel):
     downvotes: int = 0
     author: Author
     title: str
-    tags: list[str] = None
+    tags: list[str] | None
 
 
 class QuestionReadDetailed(BaseModel):
@@ -89,13 +83,19 @@ class QuestionReadDetailed(BaseModel):
     downvotes: int = 0
     author: Author
     title: str
-    tags: list[str] = None
+    tags: list[str] | None
 
     answers: list[AnswerReadDetailed] = None
     comments: list[CommentRead] = None
 
 
+class QuestionCreate(BaseModel):
+    content: str
+    title: str
+    tags: list[str] | None= None
+
+
 class QuestionUpdate(BaseModel):
     content: str
     title: str
-    tags: list[str] = None
+    tags: list[str] | None = None

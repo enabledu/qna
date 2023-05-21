@@ -6,6 +6,7 @@ select Question {
   },
   title,
   content,
+  tags,
   upvotes,
   downvotes,
 }
