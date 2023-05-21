@@ -335,7 +335,8 @@ async def get_all_answer_comments(
           downvotes,
           date_created,
           date_modified
-        }\
+        }
+        order by .date_created
         """,
         answer_id=answer_id,
     )
@@ -364,7 +365,8 @@ async def get_all_question_answers(
           is_accepted,
           date_created,
           date_modified
-        }\
+        }
+        order by .date_created
         """,
         question_id=question_id,
     )
@@ -392,7 +394,8 @@ async def get_all_question_comments(
           downvotes,
           date_created,
           date_modified
-        }\
+        }
+        order by .date_created
         """,
         question_id=question_id,
     )
@@ -417,7 +420,8 @@ async def get_all_questions(
           downvotes,
           date_created,
           date_modified
-        }\
+        }
+        order by .date_created desc
         """,
     )
 

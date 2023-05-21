@@ -14,3 +14,4 @@ select question.comments {
   date_created,
   date_modified
 }
+order by .date_created desc
