@@ -1,15 +1,15 @@
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 
-from qna_app.backend.src.apis.answers import answers_router
-from qna_app.backend.src.apis.questions import question_router
-from qna_app.backend.src.apis.comments import comments_router
+from qna.backend.src.routers.answers import answers_router
+from qna.backend.src.routers.questions import questions_router
+from qna.backend.src.routers.comments import comments_router
 
-app = APIRouter(prefix="/qna_app")
+app = APIRouter(prefix="/qna")
 
 app.include_router(answers_router)
-app.include_router(question_router)
+app.include_router(questions_router)
 app.include_router(comments_router)
 
 
@@ -21,4 +21,4 @@ async def router_root():
 
 @app.get("/")
 async def read_root():
-    return RedirectResponse(url="http://127.0.0.1:8000/qna_app/frontend/out/index.html")
+    return RedirectResponse(url="http://127.0.0.1:8000/qna/frontend/out/index.html")

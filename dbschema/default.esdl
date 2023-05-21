@@ -1,8 +1,8 @@
 module default {
     abstract type Post {
         required property content -> str;
-        property upvotes -> int16{default := 0; }
-        property downvotes -> int16{default := 0; }
+        property upvotes := (select count(.upvoters));
+        property downvotes := (select count(.downvoters));
         required link author -> User;
         
         multi link upvoters -> User {

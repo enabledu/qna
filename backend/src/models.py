@@ -3,6 +3,10 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
+class ErrorModel(BaseModel):
+    detail: str
+
+
 class Author(BaseModel):
     id: UUID
     username: str
@@ -12,21 +16,56 @@ class PostID(BaseModel):
     id: UUID
 
 
-class Post(PostID, BaseModel):
+class QuestionRead(BaseModel):
+    id: UUID
+    content: str
+    upvotes: int = 0
+    downvotes: int = 0
+    author: Author
+    title: str
+    tags: list[str] = None
+
+
+class QuestionUpdate(BaseModel):
+    content: str
+    title: str
+    tags: list[str] = None
+
+
+class QuestionCreate(BaseModel):
+    content: str
+    title: str
+    tags: list[str] = None
+
+
+class AnswerRead(BaseModel):
+    id: UUID
+    content: str
+    upvotes: int = 0
+    downvotes: int = 0
+    author: Author
+    is_accepted: bool = False
+
+
+class AnswerCreate(BaseModel):
+    content: str
+
+
+class AnswerUpdate(BaseModel):
+    content: str
+
+
+class CommentRead(BaseModel):
+    id: UUID
     content: str
     upvotes: int = 0
     downvotes: int = 0
     author: Author
 
 
-class Question(Post):
-    title: str
-    tags: list[str] = None
+class CommentCreate(BaseModel):
+    content: str
 
 
-class Answer(Post):
-    is_accepted: bool = False
-
-
-class Comment(Post):
-    pass
+class CommentUpdate(BaseModel):
+    content: str

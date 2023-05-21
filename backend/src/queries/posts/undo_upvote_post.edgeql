@@ -6,6 +6,5 @@ with
 update Post
 filter .id = <uuid>$post_id
 set {
-  upvotes := .upvotes-1,
   upvoters -= upvoter
 }

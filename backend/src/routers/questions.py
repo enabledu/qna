@@ -1,3 +1,4 @@
+import dataclasses
 from uuid import UUID
 
 from edgedb import AsyncIOClient
@@ -8,7 +9,10 @@ from qna.backend.src import queries
 from enabled.backend.src.database import get_client
 from enabled.backend.src.users.users import current_active_user
 
-from qna.backend.src.models import QuestionCreate, QuestionRead, PostID, CommentCreate, AnswerCreate, ErrorModel
+from qna.backend.src.models import (QuestionCreate, QuestionRead, QuestionUpdate,
+                                    CommentCreate, CommentRead,
+                                    AnswerCreate, AnswerRead,
+                                    PostID, ErrorModel)
 
 from qna.backend.src.dependencies import get_question
 
@@ -38,17 +42,20 @@ async def edit_question(question_id: UUID,
     if not question.author.id == user.id:
         raise HTTPException(status_code=403, detail="ONLY_QUESTION_AUTHOR_CAN_EDIT_IT")
     else:
-        update_question = question.dict(include={'title': True,
-                                                 'content': True,
-                                                 'tags': True}).update(update_question)
-        return await queries.update_question(client, question_id=question_id, **update_question)
+
+        question_dict = dataclasses.asdict(question)
+        question_dict.update(update_question.dict())
+        update_question = {k: v
+                           for k, v in question_dict.items()
+                           if k in ["title", "content", "tags"]}
+        return await queries.edit_question(client, question_id=question_id, **update_question)
 
 
 @questions_router.delete("/{question_id}/delete/",
                          responses={404: {"model": ErrorModel},
                                     403: {"model": ErrorModel}})
 async def delete_question(question_id: UUID,
-                          question: Question = Depends(get_question),
+                          question: QuestionRead = Depends(get_question),
                           user=Depends(current_active_user),
                           client: AsyncIOClient = Depends(get_client)) -> PostID:
     if not question.author.id == user.id:
@@ -61,20 +68,20 @@ async def delete_question(question_id: UUID,
                       dependencies=[Depends(get_question)],
                       responses={404: {"model": ErrorModel}})
 async def get_all_question_comments(question_id: UUID,
-                                    client: AsyncIOClient = Depends(get_client)) -> list[Comment]:
+                                    client: AsyncIOClient = Depends(get_client)) -> list[CommentRead]:
     return await queries.get_all_question_comments(client, question_id=question_id)
 
 
 @questions_router.post("/{question_id}/comment/add/",
                        dependencies=[Depends(get_question)],
                        responses={404: {"model": ErrorModel}})
-async def insert_comment_to_question(question_id: UUID,
-                                     content: str,
-                                     user=Depends(current_active_user),
-                                     client: AsyncIOClient = Depends(get_client)) -> PostID:
+async def add_comment_to_question(question_id: UUID,
+                                  comment: CommentCreate,
+                                  user=Depends(current_active_user),
+                                  client: AsyncIOClient = Depends(get_client)) -> PostID:
     return await queries.add_comment_to_question(client,
                                                  author_id=user.id,
-                                                 content=content,
+                                                 content=comment.content,
                                                  question_id=question_id)
 
 
@@ -82,7 +89,7 @@ async def insert_comment_to_question(question_id: UUID,
                       dependencies=[Depends(get_question)],
                       responses={404: {"model": ErrorModel}})
 async def get_all_question_answers(question_id: UUID,
-                                   client: AsyncIOClient = Depends(get_client)) -> list[Answer]:
+                                   client: AsyncIOClient = Depends(get_client)) -> list[AnswerRead]:
     return await queries.get_all_question_answers(client, question_id=question_id)
 
 
@@ -90,12 +97,12 @@ async def get_all_question_answers(question_id: UUID,
                        dependencies=[Depends(get_question)],
                        responses={404: {"model": ErrorModel}})
 async def add_answer_to_question(question_id: UUID,
-                                 content: str,
+                                 answer: AnswerCreate,
                                  user=Depends(current_active_user),
                                  client: AsyncIOClient = Depends(get_client)) -> PostID:
     return await queries.add_answer_to_question(client,
                                                 author_id=user.id,
-                                                content=content,
+                                                content=answer.content,
                                                 question_id=question_id)
 
 
@@ -103,29 +110,41 @@ async def add_answer_to_question(question_id: UUID,
                        dependencies=[Depends(get_question)],
                        responses={404: {"model": ErrorModel}})
 async def upvote_question(question_id: UUID,
+                          user=Depends(current_active_user),
                           client: AsyncIOClient = Depends(get_client)) -> PostID:
-    return await queries.upvote_question(client, question_id=question_id)
+    return await queries.upvote_post(client,
+                                     post_id=question_id,
+                                     upvoter_id=user.id)
 
 
 @questions_router.post("/{question_id}/upvote/undo/",
                        dependencies=[Depends(get_question)],
                        responses={404: {"model": ErrorModel}})
 async def undo_upvote_question(question_id: UUID,
+                               user=Depends(current_active_user),
                                client: AsyncIOClient = Depends(get_client)) -> PostID:
-    return await queries.undo_upvote_question(client, question_id=question_id)
+    return await queries.undo_upvote_post(client,
+                                          post_id=question_id,
+                                          upvoter_id=user.id)
 
 
 @questions_router.post("/{question_id}/downvote/",
                        dependencies=[Depends(get_question)],
                        responses={404: {"model": ErrorModel}})
 async def downvote_question(question_id: UUID,
+                            user=Depends(current_active_user),
                             client: AsyncIOClient = Depends(get_client)) -> PostID:
-    return await queries.downvote_question(client, question_id=question_id)
+    return await queries.downvote_post(client,
+                                       post_id=question_id,
+                                       downvoter_id=user.id)
 
 
 @questions_router.post("/{question_id}/downvote/undo/",
                        dependencies=[Depends(get_question)],
                        responses={404: {"model": ErrorModel}})
 async def undo_downvote_question(question_id: UUID,
+                                 user=Depends(current_active_user),
                                  client: AsyncIOClient = Depends(get_client)) -> PostID:
-    return await queries.undo_downvote_question(client, question_id=question_id)
+    return await queries.undo_downvote_post(client,
+                                            post_id=question_id,
+                                            downvoter_id=user.id)

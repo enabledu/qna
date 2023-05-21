@@ -2,7 +2,7 @@ from __future__ import annotations
 import edgedb
 import uuid
 
-from qna_app.backend.src.models import PostID, Post, Question, Answer, Comment
+from qna.backend.src.models import PostID, QuestionRead, AnswerRead, CommentRead
 
 
 async def accept_answer(
@@ -57,6 +57,42 @@ async def add_answer_to_question(
     )
 
 
+async def add_comment_to_answer(
+    executor: edgedb.AsyncIOExecutor,
+    *,
+    author_id: uuid.UUID,
+    content: str,
+    answer_id: uuid.UUID,
+) -> PostID:
+    return await executor.query_single(
+        """\
+        with
+          author := (
+            select User
+            filter .id = <uuid>$author_id
+          ),
+          comment := (
+            insert Comment {
+              author := author,
+              content := <str>$content,
+            }
+          ),
+          updated_answer := (
+            update Answer
+            filter .id = <uuid>$answer_id
+            set {
+              comments += comment
+            }
+          )
+        select comment\
+        """,
+        author_id=author_id,
+        content=content,
+        answer_id=answer_id,
+    )
+
+
+
 async def add_comment_to_question(
     executor: edgedb.AsyncIOExecutor,
     *,
@@ -95,7 +131,7 @@ async def add_comment_to_question(
 async def add_question(
     executor: edgedb.AsyncIOExecutor,
     *,
-    owner_id: uuid.UUID,
+    author_id: uuid.UUID,
     title: str,
     content: str,
     tags: list[str] | None,
@@ -105,14 +141,14 @@ async def add_question(
         insert Question {
           author := (
             select User
-            filter .id = <uuid>$owner_id
+            filter .id = <uuid>$author_id
           ),
           title := <str>$title,
           content := <str>$content,
           tags := <optional array<str>>$tags
         }\
         """,
-        owner_id=owner_id,
+        author_id=author_id,
         title=title,
         content=content,
         tags=tags,
@@ -177,7 +213,6 @@ async def downvote_post(
         update Post
         filter .id = <uuid>$post_id
         set {
-          downvotes := .downvotes+1,
           downvoters += downvoter
         }\
         """,
@@ -253,7 +288,7 @@ async def get_all_answer_comments(
     executor: edgedb.AsyncIOExecutor,
     *,
     answer_id: uuid.UUID,
-) -> list[Comment]:
+) -> list[CommentRead]:
     return await executor.query(
         """\
         with answer := (
@@ -279,7 +314,7 @@ async def get_all_question_answers(
     executor: edgedb.AsyncIOExecutor,
     *,
     question_id: uuid.UUID,
-) -> list[Answer]:
+) -> list[AnswerRead]:
     return await executor.query(
         """\
         with question := (
@@ -306,7 +341,7 @@ async def get_all_question_comments(
     executor: edgedb.AsyncIOExecutor,
     *,
     question_id: uuid.UUID,
-) -> list[Comment]:
+) -> list[CommentRead]:
     return await executor.query(
         """\
         with question := (
@@ -352,7 +387,7 @@ async def get_answer(
     executor: edgedb.AsyncIOExecutor,
     *,
     answer_id: uuid.UUID,
-) -> Answer | None:
+) -> AnswerRead | None:
     return await executor.query_single(
         """\
         select Answer {
@@ -376,7 +411,7 @@ async def get_comment(
     executor: edgedb.AsyncIOExecutor,
     *,
     comment_id: uuid.UUID,
-) -> Comment | None:
+) -> CommentRead | None:
     return await executor.query_single(
         """\
         select Comment {
@@ -399,7 +434,7 @@ async def get_question(
     executor: edgedb.AsyncIOExecutor,
     *,
     question_id: uuid.UUID,
-) -> Question | None:
+) -> QuestionRead | None:
     return await executor.query_single(
         """\
         select Question {
@@ -452,7 +487,6 @@ async def undo_downvote_post(
         update Post
         filter .id = <uuid>$post_id
         set {
-          downvotes := .downvotes-1,
           downvoters -= downvoter
         }\
         """,
@@ -477,7 +511,6 @@ async def undo_upvote_post(
         update Post
         filter .id = <uuid>$post_id
         set {
-          upvotes := .upvotes-1,
           upvoters -= upvoter
         }\
         """,
@@ -502,7 +535,6 @@ async def upvote_post(
         update Post
         filter .id = <uuid>$post_id
         set {
-          upvotes := .upvotes+1,
           upvoters += upvoter
         }\
         """,
