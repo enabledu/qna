@@ -13,20 +13,40 @@ select Question {
   date_created,
   date_modified,
 
-  answers: {
-    id,
-    author: {
+  answers := (
+    select .answers {
       id,
-      username
-    },
-    content,
-    upvotes,
-    downvotes,
-    is_accepted,
-    date_created,
-    date_modified,
-    comments: {
-      id,
+      author: {
+        id,
+        username
+      },
+      content,
+      upvotes,
+      downvotes,
+      is_accepted,
+      date_created,
+      date_modified,
+      comments := (
+        select .comments {
+          id,
+          author: {
+            id,
+            username
+          },
+          content,
+          upvotes,
+          downvotes,
+          date_created,
+          date_modified
+        } order by .date_created
+      )
+    } order by .date_created
+  ),
+
+
+  comments := (
+    select .comments {
+       id,
       author: {
         id,
         username
@@ -36,20 +56,7 @@ select Question {
       downvotes,
       date_created,
       date_modified
-    }
-  },
-
-  comments: {
-    id,
-    author: {
-      id,
-      username
-    },
-    content,
-    upvotes,
-    downvotes,
-    date_created,
-    date_modified
-  }
+    } order by .date_created
+  )
 }
 filter .id = <uuid>$question_id
